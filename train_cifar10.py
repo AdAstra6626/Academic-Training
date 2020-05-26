@@ -8,6 +8,8 @@ import torch.nn.functional as F
 from resnet_cifar10 import ResNet
 from vgg16 import VGG16
 from densenet import DenseNet
+from sknet import sknet
+from senet import senet
 from torch.optim.lr_scheduler import MultiStepLR
 import torchvision
 import torchvision.transforms as transforms
@@ -30,13 +32,18 @@ def Train(cfg):
 
     testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True,transform=transform_test)
     testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
-    device = torch.device('cuda:0')
+    device = torch.device('cuda:1')
     if cfg["name"] == "ResNet":
         net = ResNet(cfg)
     elif cfg["name"] == "VGG":
         net = VGG16(cfg)
     elif cfg["name"] == "DenseNet":
         net = DenseNet(depth=cfg["depth"])
+    elif cfg["name"] == "SKNet":
+        net = sknet()
+    elif cfg["name"] == "SENet":
+        net = senet()
+    net = nn.DataParallel(net, device_ids=[1, 2, 3, 4])
     net.to(device)
     epoch = cfg["epoches"]
     lr = cfg["lr"]
@@ -104,7 +111,7 @@ def Train(cfg):
         scheduler.step()
 
 
-cfg = {"name":"ResNet","type":"ResNet44", "bn":1, "batch_size":128, "epoches":240, "lr":0.1, "momentum":0.9, "weight_decay":0.0001,
+cfg = {"name":"SENet","type":"SENet29", "bn":1, "batch_size":512, "epoches":240, "lr":0.1, "momentum":0.9, "weight_decay":0.0001,
         "resume":False, "resume_path":None, "depth":None}
 
 if __name__ == "__main__":

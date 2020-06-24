@@ -35,7 +35,7 @@ class semodule(nn.Module):
         u = u.expand(batch_size, self.mid_channels, h_w*h_w)
         u = u.resize(batch_size, self.mid_channels, h_w, h_w)
         u0 = torch.mul(u, u0)
-        out = self.conv3(u)
+        out = self.conv3(u0)
         x0 = self.shortcut(x0)
         out += x0
         return F.relu(out)
@@ -44,6 +44,7 @@ class semodule(nn.Module):
 class senet(nn.Module):
     def __init__(self):
         super().__init__()
+        '''
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3,
                                stride=1, padding=1, bias=False)
         self.batch_norm1 = nn.BatchNorm2d(64)
@@ -60,6 +61,23 @@ class senet(nn.Module):
             self.layers.append(semodule(16, 1024, 512, 1024, 1))
 
         self.fc = nn.Linear(1024, 10)
+        '''
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3,
+                               stride=1, padding=1, bias=False)
+        self.batch_norm1 = nn.BatchNorm2d(32)
+
+        self.layers = nn.ModuleList([])
+        self.layers.append(semodule(16, 32, 64, 128, 1))
+        for i in range(2):
+            self.layers.append(semodule(16, 128, 64, 128, 1))
+        self.layers.append(semodule(16, 128, 128, 256, 2))
+        for i in range(2):
+            self.layers.append(semodule(16, 256, 128, 256, 1))
+        self.layers.append(semodule(16, 256, 256, 512, 2))
+        for i in range(2):
+            self.layers.append(semodule(16, 512, 256, 512, 1))
+
+        self.fc = nn.Linear(512, 10)
     
     def forward(self, x):
         x = F.relu(self.batch_norm1(self.conv1(x)))
@@ -68,5 +86,17 @@ class senet(nn.Module):
         out = F.avg_pool2d(x, 8)
         out = out.view(x.size()[0], -1)
         return self.fc(out)
+
+
+import torchvision.models as models
+import torch
+from ptflops import get_model_complexity_info
+
+with torch.cuda.device(0):
+  net = senet()
+  macs, params = get_model_complexity_info(net, (3, 32, 32), as_strings=True,
+                                           print_per_layer_stat=True, verbose=True)
+  print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
+  print('{:<30}  {:<8}'.format('Number of parameters: ', params))
 
 # %%

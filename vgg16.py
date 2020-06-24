@@ -55,3 +55,5 @@ class VGG16(nn.Module):
             x=layer(x)
         return x
 
+
+# %%

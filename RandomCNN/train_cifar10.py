@@ -100,9 +100,11 @@ def Train(cfg):
         scheduler.step()
 
 
-cfg = {"name":"CNN_SE", "type":"random_CNN_SE_WS_K4_P0.75_01", "bn":1, "batch_size":128, "epoches":240, "lr":0.1, "momentum":0.9, "weight_decay":0.0005, 
-"device":"cuda:3", "nodes":32, 'graph_model':'WS', 'K':4, 'P' : 0.75, 'M':None, 'seed':1, "channels":78,
-"reduction":16}
+cfg = {"name":"CNN", "type":"random_CNN_convert1", "bn":1, "batch_size":128, "epoches":240, "lr":0.1, "momentum":0.9, "weight_decay":0.0005, 
+"device":"cuda:3", "nodes":32, 'graph_model':'convert', 'K':4, 'P' : 0.75, 'M':None, 'seed':1, "channels":78,
+"reduction":16,
+"rewire_K": 4,
+"rewire_p":0.6}
 
 if __name__ == "__main__":
     Train(cfg)

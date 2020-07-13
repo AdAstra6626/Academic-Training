@@ -1,5 +1,7 @@
 import networkx as nx
 import collections
+import convert_sw
+from convert_sw import *
 
 
 Node = collections.namedtuple('Node', ['id', 'inputs', 'type'])
@@ -28,6 +30,10 @@ def build_graph(Nodes, cfg):
     return nx.random_graphs.barabasi_albert_graph(Nodes, cfg['M'], cfg['seed'])
   elif cfg['graph_model'] == 'WS':
     return nx.random_graphs.connected_watts_strogatz_graph(Nodes, cfg['K'], cfg['P'], tries=200, seed=cfg['seed'])
+  elif cfg['graph_model'] == 'convert':
+    graph = nx.random_graphs.erdos_renyi_graph(Nodes, cfg['P'], cfg['seed'])
+    rewire_graph(graph, cfg['rewire_K'], cfg['rewire_p'])
+    return graph
 
 def save_graph(graph, path):
   nx.write_yaml(graph, path)
